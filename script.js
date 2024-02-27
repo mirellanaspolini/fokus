@@ -1,28 +1,40 @@
 const html = document.querySelector("html");
 const img = document.querySelector(".app__image");
 const titulo = document.querySelector(".app__title");
+const btnTocarMusica = document.querySelector("#alternar-musica");
+const musica = new Audio("/sons/luna-rise-part-one.mp3");
+musica.loop = true;
+const btnComecar = document.querySelector("#start-pause");
+const temporizador = document.querySelector("#timer");
+
+let tempoDecorridoSeg = 1500;
+let intervaloID = null;
 
 // botoes
-const botoes = document.querySelectorAll("app__card-button");
+const botoes = document.querySelectorAll(".app__card-button");
 const btnFoco = document.querySelector(".app__card-button--foco");
 const btnCurto = document.querySelector(".app__card-button--curto");
 const btnLongo = document.querySelector(".app__card-button--longo");
 
 btnFoco.addEventListener("click", () => {
+    tempoDecorridoSeg = 1500;
     mudarContexto("foco");
     btnFoco.classList.add("active");
 });
 btnCurto.addEventListener("click", () => {
+    tempoDecorridoSeg = 300;
     mudarContexto("descanso-curto");
     btnCurto.classList.add("active");
 });
 btnLongo.addEventListener("click", () => {
+    tempoDecorridoSeg = 900;
     mudarContexto("descanso-longo");
     btnLongo.classList.add("active");
 });
 
 function mudarContexto(contexto) {
-    // botoes.forEach
+    mostrarTempo();
+    botoes.forEach((btn) => btn.classList.remove("active"));
 
     html.dataset.contexto = `${contexto}`;
     img.src = `/imagens/${contexto}.png`;
@@ -45,3 +57,43 @@ function mudarContexto(contexto) {
             break;
     }
 }
+
+btnTocarMusica.addEventListener("change", () =>
+    musica.paused ? musica.play() : musica.pause()
+);
+
+const contagemRegressiva = () => {
+    if (tempoDecorridoSeg <= 0) {
+        zerar();
+        console.log("finalizado");
+        return;
+    }
+    tempoDecorridoSeg -= 1;
+    mostrarTempo();
+};
+
+btnComecar.addEventListener("click", iniciarOuPausar);
+
+function iniciarOuPausar() {
+    if (intervaloID) {
+        zerar();
+        return;
+    }
+    intervaloID = setInterval(contagemRegressiva, 1000);
+}
+
+function zerar() {
+    clearInterval(intervaloID);
+    intervaloID = null;
+}
+
+function mostrarTempo() {
+    const tempo = new Date(tempoDecorridoSeg * 1000);
+    const tempoFormatado = tempo.toLocaleTimeString("pt-br", {
+        minute: "2-digit",
+        second: "2-digit",
+    });
+    temporizador.innerHTML = tempoFormatado;
+}
+
+mostrarTempo();
